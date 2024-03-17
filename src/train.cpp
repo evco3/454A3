@@ -25,26 +25,61 @@ void Train::draw( mat4 &WCStoVCS, mat4 &WCStoCCS, vec3 lightDir, bool flag )
   // YOUR CODE HERE
   float t = spline->paramAtArcLength( pos );
   
-
-  // Draw cube
+  // Draw sphere
   vec3 o, x, y, z;
   spline->findLocalSystem( t, o, x, y, z );
 
-  vec3 axis = vec3(1,0,0) ^ z;
-  float theta = atan2( axis.length(), vec3(1,0,0)*z );
+  mat4 T = translate(0, 0, 2);
 
-  mat4 R;
-  R.rows[0] = vec4(x, 0);
-  R.rows[1] = vec4(y, 0);
-  R.rows[2] = vec4(z, 0);
-  R.rows[3] = vec4(0, 0, 0, 1);
-
-
-  mat4 M   = translate( o ) *  scale( 10, 10, 10 );
+  mat4 M   = translate( o ) * T *  scale( 5, 5, 5 );
   mat4 MV  = WCStoVCS * M;
   mat4 MVP = WCStoCCS * M;
 
-  cube->draw( MV, MVP, lightDir, vec3( SPHERE_COLOUR ) );
+  sphere->draw( MV, MVP, lightDir, vec3( SPHERE_COLOUR ) );
+
+  //draw 4 cylinders behind the first sphere
+for (int i = 1; i < 5; i++) {
+  float offset = float(i*-10);
+  float currentPos = fmod(pos + spline->totalArcLength() + offset, spline->totalArcLength());
+  float t = spline->paramAtArcLength( currentPos );
+  vec3 o, x, y, z;
+  spline->findLocalSystem( t, o, x, y, z );
+
+  //for small bouncing
+  // if(((sin(2.0f * M_PI * currentPos / spline->totalArcLength())+i)*10) % 2 += 0) {
+  //   o.y += 2;
+  // }else {
+  //   o.y -= 2;
+  // }
+  // cout << "sin" << sin(2.0f * M_PI * currentPos / spline->totalArcLength()) << endl;
+
+  vec3 axis = vec3(1,0,0) ^ z;
+  float angle = atan2( axis.length(), vec3(1,0,0)*z );
+
+  //translation matrix to move them slighllty in the world y direction
+  mat4 T = translate(0, 0, 2);
+
+
+  mat4 M   = translate( o ) * T * rotate(angle,axis)  * scale( 7, 4, 4) * rotate(1.5, vec3(1, 0, 0)) * rotate(1.5, vec3(0, 1, 0));
+  mat4 MV  = WCStoVCS * M;
+  mat4 MVP = WCStoCCS * M;
+
+  cylinder->draw( MV, MVP, lightDir, vec3( SPHERE_COLOUR ) );
+
+
+  float currentPos2 = fmod(pos + spline->totalArcLength()+offset+5, spline->totalArcLength());
+  float t2 = spline->paramAtArcLength( currentPos2 );
+  vec3 o2, x2, y2, z2;
+  spline->findLocalSystem( t2, o2, x2, y2, z2 );
+
+  //draw connecitng pieces
+  mat4 T2 = translate(0, -1, 2);
+  mat4 rectangleM = translate(o2) * T2 * rotate(angle, axis) * scale(3, 1.3f, 1.3f)*  rotate(1.5, vec3(1, 0, 0)) * rotate(1.5, vec3(0, 1, 0)); 
+  mat4 rectangleMV = WCStoVCS * rectangleM;
+  mat4 rectangleMVP = WCStoCCS * rectangleM;
+
+  cylinder->draw(rectangleMV, rectangleMVP, lightDir, vec3(1.0f, 1.0f, 1.0f));
+}
 
 #else
   

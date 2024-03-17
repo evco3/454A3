@@ -55,20 +55,29 @@ vec3 operator*(vec3 v, float f) {
 vec3 Spline::eval( float t, evalType type )
 
 {
+
+  int maxT = data.size();
+  
   // YOUR CODE HERE
-  if (t < 0)
-    t += data.size();
-  else if (t >= data.size())
-    t -= data.size();
+  while (t < 0)
+    t += maxT;
 
-  vec3 q0 = data[((int(t) - 1) + data.size()) % data.size()];
-  vec3 q1 = data[int(t) % data.size()];
-  vec3 q2 = data[(int(t) + 1) % data.size()];
-  vec3 q3 = data[(int(t) + 2) % data.size()];
+  t = fmod(t, maxT);
 
-  if (t >= data.size() - 1) {
-    q3 = data[0];
-  }
+  int t0 = int(t) - 1;
+  int t1 = int(t);
+  int t2 = int(t) + 1;
+  int t3 = int(t) + 2;
+
+  t0 = (t0 + maxT) % maxT;
+  t1 = t1 % maxT;
+  t2 = t2 % maxT;
+  t3 = t3 % maxT;
+
+  vec3 q0 = data[t0];
+  vec3 q1 = data[t1];
+  vec3 q2 = data[t2];
+  vec3 q3 = data[t3];
 
   // Calculate Mv matrix
   
@@ -336,4 +345,12 @@ float Spline::totalArcLength()
     computeArcLengthParameterization();
 
   return arcLength[ data.size() * DIVS_PER_SEG ];
+}
+
+
+void Spline::addPoint( vec3 p )
+
+{
+  data.add( p );
+  mustRecomputeArcLength = true;
 }

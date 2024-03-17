@@ -589,23 +589,9 @@ void Scene::drawAllTrack( mat4 &MV, mat4 &MVP, vec3 lightDir )
 
   vec3 triangleLineColors[3] = {SPLINE_COLOUR, SPLINE_COLOUR, SPLINE_COLOUR};
 
+
   float distanceBetweenRails = 5;
   float triangleHeight = 5;
-
-  // Iterate through points
-  
-  // i = 0;
-  // for (float t = 0; t < spline->data.size() - 1; t += 1 / (float)divs_per_seg) {
-  //   vec3 o, x, y, z;
-  //   spline->findLocalSystem(t, o, x, y, z);
-  //   vec3 point = spline->value(t);
-  //   vec3 leftPoint = point + distanceBetweenRails / 2 * x + triangleHeight * y;
-  //   vec3 rightPoint = point - distanceBetweenRails / 2 * x + triangleHeight * y;
-
-  //   leftPoints[i] = leftPoint;
-  //   rightPoints[i] = rightPoint;
-  //   i++;
-  // }
   
 
   float trackLength = spline->totalArcLength();
@@ -660,11 +646,6 @@ void Scene::drawAllTrack( mat4 &MV, mat4 &MVP, vec3 lightDir )
     for (float t=0; t<spline->data.size(); t+=1/(float)divs_per_seg)
       spline->drawLocalSystem( t, MVP );
 
-  // delete[] points;
-  // delete[] colours;
-  // delete[] leftPoints;
-  // delete[] rightPoints;
-  // YOUR CODE HERE
 }
 
 

@@ -1,0 +1,9 @@
+macos/
+linux/
+windows/
+!macos/Makefile
+!macos/README.txt
+!linux/Makefile
+!linux/README.txt
+!windows/Makefile
+!windows/README.txt

@@ -109,9 +109,9 @@ void Train::advance( float elapsedSeconds )
 
   pos += velocity * elapsedSeconds;
 
-  cout << "magnitude:" << magnitude << endl;
-  cout << "Velocity:" << velocity << endl;
-  cout << "Acceleration:" << acceleration << endl;
+  // cout << "Magnitude:" << magnitude << endl;
+  // cout << "Velocity:" << velocity << endl;
+  // cout << "Acceleration:" << acceleration << endl;
 
 
   if(pos > arcLength) {

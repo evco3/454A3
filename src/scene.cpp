@@ -66,7 +66,7 @@ Scene::Scene( char *sceneFilename, GLFWwindow *w )
   pause = false;
   dragging = false;
   arcballActive = false;
-  drawTrack = false;
+  drawTrack = true;
   drawCoaster = true;
   drawUndersideOnly = false;
   useArcLength = false;
@@ -582,8 +582,58 @@ bool Scene::write()
 
 
 void Scene::drawAllTrack( mat4 &MV, mat4 &MVP, vec3 lightDir )
-
 {
+  int divs_per_seg = 20;
+
+  int pointCount = spline->data.size()*divs_per_seg + 1;
+  // Iterate through the positions on the track
+  vec3 *points = new vec3[ pointCount];
+  vec3 *colours = new vec3[ pointCount];
+
+  int i = 0;
+  for (float t = 0; t < spline->data.size() - 1; t += 1 / (float)divs_per_seg) {
+    points[i] = spline->value( t );
+    colours[i] = SPLINE_COLOUR;
+    i++;
+  }
+
+  // segs->drawSegs( GL_LINE_LOOP, points, colours, i, MV, MVP, lightDir );
+
+
+
+  vec3 *leftPoints = new vec3[ pointCount];
+  vec3 *rightPoints = new vec3[ pointCount];
+
+  float distanceBetweenRails = 5;
+  // Iterate through points
+  i = 0;
+  for (float t = 0; t < spline->data.size() - 1; t += 1 / (float)divs_per_seg) {
+    vec3 o, x, y, z;
+    spline->findLocalSystem(t, o, x, y, z);
+    vec3 point = spline->value(t);
+    vec3 leftPoint = point + distanceBetweenRails / 2 * x;
+    vec3 rightPoint = point - distanceBetweenRails / 2 * x;
+    
+    leftPoints[i] = leftPoint;
+    rightPoints[i] = rightPoint;
+    i++;
+  }
+
+  segs->drawSegs( GL_LINE_LOOP, leftPoints, colours, i, MV, MVP, lightDir );
+  segs->drawSegs( GL_LINE_LOOP, rightPoints, colours, i, MV, MVP, lightDir );
+
+
+
+  // Draw points evenly spaced in the parameter
+
+  if (debug)
+    for (float t=0; t<spline->data.size(); t+=1/(float)divs_per_seg)
+      spline->drawLocalSystem( t, MVP );
+
+  delete[] points;
+  delete[] colours;
+  delete[] leftPoints;
+  delete[] rightPoints;
   // YOUR CODE HERE
 }
 

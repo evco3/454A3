@@ -44,6 +44,10 @@ class Train {
   void brake() {
     speed -= SPEED_INC;
   }
+
+  float getPos() {
+    return pos;
+  }
 };
 
 

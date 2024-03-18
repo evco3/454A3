@@ -5,6 +5,7 @@
 #include "scene.h"
 #include "font.h"
 #include "main.h"
+#include "linalg.h"
 
 #include <strstream>
 #include <fstream>
@@ -92,6 +93,20 @@ void Scene::draw( bool useItemTags )
                           windowWidth/(float)windowHeight, 
                           MAX(0.1,arcball->distToCentre - 1.2*diag),
                           arcball->distToCentre + 1.2*diag );
+
+  if (carView == true){
+    float t = spline->paramAtArcLength(train->getPos());
+    vec3 o, x, y, z;
+    spline->findLocalSystem( t, o, x, y, z );
+    
+    vec3 carPosition = vec3(-260,-260,15) + spline->value(t);
+    vec3 lookAtPoint = carPosition + z - vec3(0,0,0.1); // A point in front of the car
+
+    arcball->setV(carPosition, lookAtPoint, y);
+  } else {
+    readView();
+  }
+
 
   mat4 M = translate( -1*(int)(terrain->texture->width)/2, -1*(int)(terrain->texture->height)/2, 0 );
   mat4 V = arcball->V;
@@ -227,6 +242,10 @@ void Scene::keyCallback( GLFWwindow* window, int key, int scancode, int action, 
     case 'X':
       showAxes = !showAxes;
       break;
+    
+    case 'V':
+      carView = !carView;
+      break;
 
     case '/':  // = ?
       cout << "Click to add a control point." << endl
@@ -245,6 +264,7 @@ void Scene::keyCallback( GLFWwindow* window, int key, int scancode, int action, 
            << "s - store scene in '" << sceneFile << "'" << endl
            << "t - toggle track drawing" << endl
            << "u - toggle underside of terrain" << endl
+           << "v - toggle car view" << endl
            << "w - write initial view (for use on next startup)" << endl
            << "x - toggle world axes" << endl
         ;
@@ -585,9 +605,9 @@ void Scene::drawAllTrack( mat4 &MV, mat4 &MVP, vec3 lightDir )
 {
   int divs_per_seg = 20;
 
-  int pointCount = spline->data.size()*divs_per_seg + 1;
+  vec3 color = vec3(0.2,1.0,0.4);
 
-  vec3 triangleLineColors[3] = {SPLINE_COLOUR, SPLINE_COLOUR, SPLINE_COLOUR};
+  vec3 triangleLineColors[3] = {color, color, color};
 
 
   float distanceBetweenRails = 5;
@@ -598,6 +618,9 @@ void Scene::drawAllTrack( mat4 &MV, mat4 &MVP, vec3 lightDir )
   int numPoints = trackLength;
   float posIncrement = 1;
 
+  vec3 maxPointY = vec3(0,0,0);
+  vec3 minPointY = vec3(100000,100000,1000000);
+
   vec3 points[numPoints];
   vec3 leftPoints[numPoints];
   vec3 rightPoints[numPoints];
@@ -607,7 +630,14 @@ void Scene::drawAllTrack( mat4 &MV, mat4 &MVP, vec3 lightDir )
     float t = spline->paramAtArcLength(pos);
     vec3 point = spline->value(t);
     points[i] = point;
-    colours[i] = SPLINE_COLOUR;
+    colours[i] = color;
+
+    if (point.y > maxPointY.y) {
+      maxPointY = point;
+    }
+    if (point.y < minPointY.y) {
+      minPointY = point;
+    }
 
     vec3 o, x, y, z;
     spline->findLocalSystem(t, o, x, y, z);
@@ -626,7 +656,6 @@ void Scene::drawAllTrack( mat4 &MV, mat4 &MVP, vec3 lightDir )
   segs->drawSegs(GL_LINE_LOOP, rightPoints, colours, numPoints, MV, MVP, lightDir);
 
   // Draw Triangles
-  float numTies = trackLength / DIST_BETWEEN_TIES;
   for (float pos = 0; pos < trackLength; pos += DIST_BETWEEN_TIES) {
     float t = spline->paramAtArcLength(pos);
     vec3 o, x, y, z;
@@ -638,10 +667,26 @@ void Scene::drawAllTrack( mat4 &MV, mat4 &MVP, vec3 lightDir )
     segs->drawSegs(GL_LINE_LOOP, triPoints, triangleLineColors, 3, MV, MVP, lightDir);
   }
 
+  for (float pos = 0; pos < trackLength; pos += 25) {
+    float t = spline->paramAtArcLength(pos);
+    vec3 o, x, y, z;
+    spline->findLocalSystem(t, o, x, y, z);
+    vec3 point = spline->value(t);
+    
+    // Makes sure posts are not to close to control points posts
+    if (abs(t - round(t)) < 0.1)  {
+      continue;
+    }
 
+    // Draw cylinder under point
+    mat4 T = translate(0, 0, -point.z/2);
+    mat4 M   = translate( o ) * T * scale( 2,2, point.z);
+    mat4 MVnew = MV * M;
+    mat4 MVPnew = MVP * M;
+    cylinder->draw( MVnew, MVPnew, lightDir, vec3( .5, 0.5, 0.5 ) );
+  }
 
   // Draw points evenly spaced in the parameter
-
   if (debug)
     for (float t=0; t<spline->data.size(); t+=1/(float)divs_per_seg)
       spline->drawLocalSystem( t, MVP );

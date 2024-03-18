@@ -47,6 +47,7 @@ class Scene {
   bool       debug;
   bool       pause;
   bool       flag;
+  bool       carView;
 
   // for mouse picking and dragging:
 

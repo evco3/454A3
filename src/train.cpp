@@ -29,7 +29,7 @@ void Train::draw( mat4 &WCStoVCS, mat4 &WCStoCCS, vec3 lightDir, bool flag )
   vec3 o, x, y, z;
   spline->findLocalSystem( t, o, x, y, z );
 
-  mat4 T = translate(0, 0, 2);
+  mat4 T = translate(0, 0, 8);
 
   mat4 M   = translate( o ) * T *  scale( 5, 5, 5 );
   mat4 MV  = WCStoVCS * M;
@@ -46,20 +46,18 @@ for (int i = 1; i < 5; i++) {
   spline->findLocalSystem( t, o, x, y, z );
 
   //for small bouncing
-  // if(((sin(2.0f * M_PI * currentPos / spline->totalArcLength())+i)*10) % 2 += 0) {
-  //   o.y += 2;
-  // }else {
-  //   o.y -= 2;
-  // }
-  // cout << "sin" << sin(2.0f * M_PI * currentPos / spline->totalArcLength()) << endl;
+  float num = sin(2.0f * M_PI * currentPos / spline->totalArcLength());
+  float check = (int)((num+i)*10)% 3;
+  if(check == 0) {
+    o.z += 0.4;
+  }else {
+    o.z -= 0.4;
+  }
 
   vec3 axis = vec3(1,0,0) ^ z;
   float angle = atan2( axis.length(), vec3(1,0,0)*z );
 
   //translation matrix to move them slighllty in the world y direction
-  mat4 T = translate(0, 0, 2);
-
-
   mat4 M   = translate( o ) * T * rotate(angle,axis)  * scale( 7, 4, 4) * rotate(1.5, vec3(1, 0, 0)) * rotate(1.5, vec3(0, 1, 0));
   mat4 MV  = WCStoVCS * M;
   mat4 MVP = WCStoCCS * M;
@@ -73,7 +71,7 @@ for (int i = 1; i < 5; i++) {
   spline->findLocalSystem( t2, o2, x2, y2, z2 );
 
   //draw connecitng pieces
-  mat4 T2 = translate(0, -1, 2);
+  mat4 T2 = translate(0, -1, 8);
   mat4 rectangleM = translate(o2) * T2 * rotate(angle, axis) * scale(3, 1.3f, 1.3f)*  rotate(1.5, vec3(1, 0, 0)) * rotate(1.5, vec3(0, 1, 0)); 
   mat4 rectangleMV = WCStoVCS * rectangleM;
   mat4 rectangleMVP = WCStoCCS * rectangleM;
